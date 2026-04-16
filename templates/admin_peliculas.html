@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Películas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e6f7ff; /* Celeste ligeramente más claro */
+        }
+        .header-title {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.3s, color 0.3s;
+            z-index: 1002; /* Above menu */
+            user-select: none;
+            color: white;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .header-title:hover {
+            transform: translateX(-50%) scale(1.1);
+            color: navy;
+        }
+        .user-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+        .user-info a {
+            color: #333;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .user-info a:hover {
+            text-decoration: underline;
+        }
+        .menu-icon {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #add8e6; /* Celeste claro */
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .menu {
+            display: none;
+            position: fixed;
+            top: 50px;
+            left: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .menu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .menu li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .menu li:hover {
+            background-color: #f0f0f0;
+        }
+        .menu li:last-child {
+            border-bottom: none;
+        }
+        .section {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .cancel {
+            background-color: #ccc;
+        }
+        .save, .edit, .delete {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .pelicula-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .pelicula-item {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .pelicula-item:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-title">Cine Teatro Municipal</div>
+    <div class="user-info">Bienvenido, {{ usuario }} <a href="/logout">Cerrar Sesión</a></div>
+    <div class="menu-icon" onclick="toggleMenu()">⋮</div>
+    <div class="menu" id="menu">
+        <ul>
+            <li onclick="showSection('add')">Añadir Película</li>
+            <li onclick="showSection('edit')">Editar Película</li>
+            <li onclick="showSection('delete')">Eliminar Película</li>
+        </ul>
+    </div>
+
+    <div class="section" id="add-section">
+        <h2>Añadir Película</h2>
+        <form id="add-form" method="POST" action="/add_pelicula">
+            <div class="form-group">
+                <label for="add-nombre">Nombre:</label>
+                <input type="text" id="add-nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="add-proveedor">Proveedor:</label>
+                <input type="number" id="add-proveedor" name="proveedor" required>
+            </div>
+            <div class="form-group">
+                <label for="add-generos">Géneros:</label>
+                <input type="text" id="add-generos" name="generos" required>
+            </div>
+            <div class="form-group">
+                <label for="add-clasificacion">Clasificación:</label>
+                <input type="number" id="add-clasificacion" name="clasificacion" required>
+            </div>
+            <div class="form-group">
+                <label for="add-duracion">Duración (min):</label>
+                <input type="number" id="add-duracion" name="duracion" required>
+            </div>
+            <div class="form-group">
+                <label for="add-descripcion">Descripción:</label>
+                <textarea id="add-descripcion" name="descripcion" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="add-calificacion">Calificación:</label>
+                <input type="number" step="0.1" id="add-calificacion" name="calificacion" required>
+            </div>
+            <div class="form-group">
+                <label for="add-fecha">Fecha de Estreno:</label>
+                <input type="date" id="add-fecha" name="fecha_estreno" required>
+            </div>
+            <div class="buttons">
+                <button type="submit" class="save">Guardar</button>
+                <button type="button" class="cancel" onclick="hideSection('add')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section" id="edit-section">
+        <h2>Editar Película</h2>
+        <div class="pelicula-list" id="edit-list">
+            {% for pelicula in peliculas %}
+            <div class="pelicula-item" onclick="selectPelicula(this)" data-id="{{ pelicula['rowid'] }}" data-nombre="{{ pelicula['Nombre'] }}" data-proveedor="{{ pelicula['Proveedor'] }}" data-generos="{{ pelicula['Generos'] }}" data-clasificacion="{{ pelicula['Clasificacion'] }}" data-duracion="{{ pelicula['Duracion'] }}" data-descripcion="{{ pelicula['Descripcion'] }}" data-calificacion="{{ pelicula['Calificacion'] }}" data-fecha="{{ pelicula['Fecha_estreno'] }}">
+                {{ pelicula['Nombre'] }}
+            </div>
+            {% endfor %}
+        </div>
+        <form id="edit-form" method="POST" action="/edit_pelicula" style="display:none;">
+            <input type="hidden" id="edit-id" name="id">
+            <div class="form-group">
+                <label for="edit-nombre">Nombre:</label>
+                <input type="text" id="edit-nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-proveedor">Proveedor:</label>
+                <input type="number" id="edit-proveedor" name="proveedor" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-generos">Géneros:</label>
+                <input type="text" id="edit-generos" name="generos" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-clasificacion">Clasificación:</label>
+                <input type="number" id="edit-clasificacion" name="clasificacion" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-duracion">Duración (min):</label>
+                <input type="number" id="edit-duracion" name="duracion" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-descripcion">Descripción:</label>
+                <textarea id="edit-descripcion" name="descripcion" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="edit-calificacion">Calificación:</label>
+                <input type="number" step="0.1" id="edit-calificacion" name="calificacion" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-fecha">Fecha de Estreno:</label>
+                <input type="date" id="edit-fecha" name="fecha_estreno" required>
+            </div>
+            <div class="buttons">
+                <button type="submit" class="edit">Editar</button>
+                <button type="button" class="cancel" onclick="hideSection('edit')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section" id="delete-section">
+        <h2>Eliminar Película</h2>
+        <div class="pelicula-list" id="delete-list">
+            {% for pelicula in peliculas %}
+            <div class="pelicula-item" onclick="selectDelete(this)" data-id="{{ pelicula['rowid'] }}" data-nombre="{{ pelicula['Nombre'] }}">
+                {{ pelicula['Nombre'] }}
+            </div>
+            {% endfor %}
+        </div>
+        <form id="delete-form" method="POST" action="/delete_pelicula" style="display:none;">
+            <input type="hidden" id="delete-id" name="id">
+            <p>¿Estás seguro de que quieres eliminar "<span id="delete-nombre"></span>"?</p>
+            <div class="buttons">
+                <button type="submit" class="delete">Eliminar</button>
+                <button type="button" class="cancel" onclick="hideSection('delete')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function showSection(section) {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById(section + '-section').style.display = 'block';
+        }
+
+        function hideSection(section) {
+            document.getElementById(section + '-section').style.display = 'none';
+            if (section === 'edit') {
+                document.getElementById('edit-form').style.display = 'none';
+                document.getElementById('edit-list').style.display = 'block';
+            }
+            if (section === 'delete') {
+                document.getElementById('delete-form').style.display = 'none';
+                document.getElementById('delete-list').style.display = 'block';
+            }
+        }
+
+        function selectPelicula(element) {
+            const id = element.dataset.id;
+            const nombre = element.dataset.nombre;
+            const proveedor = element.dataset.proveedor;
+            const generos = element.dataset.generos;
+            const clasificacion = element.dataset.clasificacion;
+            const duracion = element.dataset.duracion;
+            const descripcion = element.dataset.descripcion;
+            const calificacion = element.dataset.calificacion;
+            const fecha = element.dataset.fecha;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nombre').value = nombre;
+            document.getElementById('edit-proveedor').value = proveedor;
+            document.getElementById('edit-generos').value = generos;
+            document.getElementById('edit-clasificacion').value = clasificacion;
+            document.getElementById('edit-duracion').value = duracion;
+            document.getElementById('edit-descripcion').value = descripcion;
+            document.getElementById('edit-calificacion').value = calificacion;
+            document.getElementById('edit-fecha').value = fecha;
+            document.getElementById('edit-list').style.display = 'none';
+            document.getElementById('edit-form').style.display = 'block';
+        }
+
+        function selectDelete(element) {
+            const id = element.dataset.id;
+            const nombre = element.dataset.nombre;
+            document.getElementById('delete-id').value = id;
+            document.getElementById('delete-nombre').textContent = nombre;
+            document.getElementById('delete-list').style.display = 'none';
+            document.getElementById('delete-form').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
