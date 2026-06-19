@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	{% load static %}
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Cartelera del Cine Teatro Municipal: películas, shows, teatro y exposiciones con horarios y detalles actualizados.">
+	<meta name="robots" content="index,follow">
+	<title>Cartelera - Panel Principal</title>
+	<style>
+		:root {
+			--bg-1: #b9def4;
+			--bg-2: #deeff9;
+			--ink-1: #0f2d43;
+			--ink-2: #335168;
+			--accent-1: #4caadf;
+			--accent-2: #2e7cad;
+			--line-1: #bfd9ea;
+			--card: #ffffff;
+			--btn-todos-bg: #79c7ef;
+			--btn-todos-border: #0f2d43;
+			--btn-todos-text: #001a4d;
+		}
+
+		html {
+			scroll-behavior: smooth;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: Arial, sans-serif;
+			color: var(--ink-1);
+			background:
+				radial-gradient(circle at 15% 10%, #f0f9ff 0%, rgba(240, 249, 255, 0) 38%),
+				linear-gradient(165deg, var(--bg-1) 0%, var(--bg-2) 55%, #ffffff 100%);
+		}
+
+		.topbar {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+			backdrop-filter: blur(6px);
+			background: linear-gradient(90deg, rgba(152, 211, 240, 0.94) 0%, rgba(127, 192, 230, 0.94) 100%);
+			border-bottom: 1px solid #72abd0;
+			box-shadow: 0 8px 18px rgba(53, 115, 156, 0.16);
+		}
+
+		.topbar-inner {
+			max-width: 1360px;
+			margin: 0 auto;
+			padding: 6px 14px;
+			display: grid;
+			grid-template-columns: 1fr auto 1fr;
+			align-items: center;
+			gap: 8px;
+			min-height: 52px;
+		}
+
+		.acceso-admin-discreto {
+			z-index: 1004;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			text-decoration: none;
+			background: var(--btn-todos-bg);
+			border: 2px solid #ffffff;
+			border-radius: 50%;
+			box-shadow: 0 8px 18px rgba(33, 79, 111, 0.2);
+			transition: border-color 0.2s ease, transform 0.2s ease;
+		}
+
+		.acceso-cliente-wrapper {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			justify-self: end;
+		}
+
+		.usuario-barra-izquierda {
+			display: inline-flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 2px;
+			justify-self: start;
+			min-width: 0;
+		}
+
+		.cliente-nombre {
+			margin-right: 0;
+			font-size: 15px;
+			font-weight: 700;
+			color: #ffffff;
+			text-shadow: 0 2px 8px rgba(23, 91, 132, 0.35);
+			max-width: 180px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.acceso-cliente-boton {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			height: 40px;
+			padding: 0 14px;
+			border-radius: 999px;
+			text-decoration: none;
+			font-size: 13px;
+			font-weight: 700;
+			line-height: 1;
+			border: 2px solid #ffffff;
+			color: #ffffff;
+			background: var(--btn-todos-bg);
+			box-shadow: 0 8px 18px rgba(33, 79, 111, 0.2);
+			transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+		}
+
+		.acceso-cliente-boton:hover {
+			border-color: #0f2d43;
+			background: var(--btn-todos-bg);
+			transform: translateY(-1px);
+		}
+
+		.acceso-admin-discreto:hover {
+			border-color: #0f2d43;
+			transform: translateY(-1px);
+		}
+
+		.acceso-admin-discreto:hover .usuario-icono-cabeza,
+		.acceso-admin-discreto:hover .usuario-icono-cuerpo {
+			border-color: #0f2d43;
+		}
+
+		.usuario-icono {
+			position: relative;
+			width: 22px;
+			height: 22px;
+			display: block;
+		}
+
+		.usuario-icono-cabeza {
+			position: absolute;
+			top: 0;
+			left: 6px;
+			width: 10px;
+			height: 10px;
+			border: 2px solid #ffffff;
+			border-radius: 50%;
+			transition: border-color 0.2s ease;
+		}
+
+		.usuario-icono-cuerpo {
+			position: absolute;
+			bottom: 0;
+			left: 1px;
+			width: 20px;
+			height: 12px;
+			border: 2px solid #ffffff;
+			border-top-left-radius: 12px;
+			border-top-right-radius: 12px;
+			border-bottom: none;
+			transition: border-color 0.2s ease;
+		}
+
+		.header-title {
+			position: static;
+			transform: none;
+			font-size: 24px;
+			font-weight: bold;
+			text-transform: uppercase;
+			cursor: default;
+			transition: transform 0.3s, color 0.3s;
+			user-select: none;
+			color: white;
+			font-family: 'Comic Sans MS', cursive;
+			text-shadow: 0 2px 12px rgba(23, 91, 132, 0.4);
+			text-align: center;
+			justify-self: center;
+		}
+
+		.header-title:hover {
+			transform: scale(1.05);
+			color: #083c6d;
+		}
+
+		.scroll-link {
+			border: 1px solid var(--btn-todos-border);
+			background: var(--btn-todos-bg);
+			color: var(--btn-todos-text);
+			border-radius: 999px;
+			padding: 8px 14px;
+			cursor: pointer;
+			font-weight: 700;
+			transition: all 0.2s ease;
+		}
+
+		.scroll-link:hover {
+			border-color: var(--btn-todos-border);
+			color: var(--btn-todos-text);
+			transform: translateY(-1px);
+			background: var(--btn-todos-bg);
+		}
+
+		.scroll-link.primary {
+			background: var(--btn-todos-bg);
+			color: var(--btn-todos-text);
+			border-color: var(--btn-todos-border);
+		}
+
+		.scroll-link.primary:hover {
+			color: var(--btn-todos-text);
+			background: var(--btn-todos-bg);
+		}
+
+		.contenedor {
+			max-width: 1360px;
+			margin: 0 auto;
+			padding: 24px 20px 48px;
+		}
+
+		.seccion {
+			background: var(--card);
+			border: 1px solid var(--line-1);
+			border-radius: 14px;
+			padding: 20px;
+			margin-bottom: 22px;
+			box-shadow: 0 10px 24px rgba(26, 77, 110, 0.18);
+		}
+
+		.seccion h2 {
+			margin: 0 0 12px;
+			font-size: 1.45rem;
+			font-family: 'Comic Sans MS', cursive;
+			letter-spacing: 0.02em;
+		}
+
+		.subtexto {
+			color: var(--ink-2);
+			margin-top: 0;
+		}
+
+		.chips {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.chip {
+			background: #fbfeff;
+			border: 1px solid var(--line-1);
+			border-radius: 10px;
+			padding: 10px 12px;
+			min-width: 160px;
+			font-weight: 600;
+		}
+
+		.peliculas-wrapper {
+			width: 100%;
+			margin: 0 auto;
+		}
+
+		.filtro-tipo-wrapper {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			margin: 0;
+		}
+
+		.filtro-tipo-label {
+			font-weight: 700;
+			font-size: 0.92rem;
+			color: var(--ink-1);
+			display: none;
+		}
+
+		.filtro-tipo-select {
+			border: 2px solid var(--btn-todos-border);
+			border-radius: 999px;
+			padding: 7px 14px;
+			font-weight: 700;
+			font-size: 0.92rem;
+			text-align: center;
+			text-align-last: center;
+			cursor: pointer;
+			appearance: none;
+			-webkit-appearance: none;
+			background-image: var(--btn-todos-bg);
+			background-position: 0 0;
+			background-size: 100% 100%;
+			background-repeat: no-repeat;
+			color: var(--btn-todos-text);
+			box-shadow: 0 6px 14px rgba(22, 66, 95, 0.2);
+			transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+		}
+
+		.filtro-tipo-select option {
+			background: #79c7ef;
+			color: #001a4d;
+		}
+
+		.filtro-tipo-select:hover {
+			transform: translateY(-1px);
+			opacity: 0.96;
+		}
+
+		.filtro-tipo-select:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 3px rgba(46, 124, 173, 0.24);
+		}
+
+		.filtro-tipo-select.tipo-todos,
+		.filtro-tipo-select.tipo-pelicula,
+		.filtro-tipo-select.tipo-show,
+		.filtro-tipo-select.tipo-teatro,
+		.filtro-tipo-select.tipo-exposicion {
+			border-color: var(--btn-todos-border);
+			color: var(--btn-todos-text);
+		}
+
+		.peliculas-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+			gap: 18px;
+			align-items: stretch;
+		}
+
+		.pelicula-card {
+			background: #fbfeff;
+			border: 1px solid var(--line-1);
+			border-radius: 14px;
+			padding: 14px 14px 16px;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			height: 100%;
+			box-shadow: 0 8px 20px rgba(33, 79, 111, 0.12);
+			cursor: pointer;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.pelicula-card .hint-doble-click {
+			margin: 2px 0 0;
+			font-size: 0.78rem;
+			color: #4f738b;
+		}
+
+		.pelicula-card:hover {
+			border-color: var(--accent-1);
+		}
+
+		.pelicula-card.selected {
+			border-color: #2e7cad;
+			box-shadow: 0 10px 24px rgba(34, 108, 152, 0.28);
+		}
+
+		.pelicula-card h3 {
+			display: none;
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 45, 67, 0.48);
+			z-index: 1200;
+			padding: 16px;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.modal-overlay.active {
+			display: flex;
+		}
+
+		.modal {
+			width: min(520px, 100%);
+			background: #ffffff;
+			border: 1px solid var(--line-1);
+			border-radius: 14px;
+			padding: 18px;
+			box-shadow: 0 16px 34px rgba(24, 74, 106, 0.26);
+			position: relative;
+		}
+
+		.modal-detalle {
+			width: min(980px, 100%);
+			max-height: min(88vh, 880px);
+			overflow: auto;
+		}
+
+		.detalle-grid {
+			display: grid;
+			grid-template-columns: 250px 1fr;
+			gap: 18px;
+		}
+
+		.detalle-portada,
+		.detalle-portada-placeholder {
+			width: 250px;
+			height: 360px;
+			border-radius: 10px;
+			border: 1px solid var(--line-1);
+			background: #edf8ff;
+		}
+
+		.detalle-portada {
+			object-fit: contain;
+			object-position: center;
+		}
+
+		.detalle-portada-placeholder {
+			border-style: dashed;
+		}
+
+		.detalle-info h3 {
+			margin-top: 0;
+			font-size: 1.42rem;
+		}
+
+		.detalle-datos {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+			gap: 8px;
+			margin-bottom: 12px;
+		}
+
+		.detalle-dato {
+			background: #f4fbff;
+			border: 1px solid var(--line-1);
+			border-radius: 9px;
+			padding: 8px 10px;
+			font-size: 0.92rem;
+		}
+
+		.detalle-programacion h4 {
+			margin: 10px 0 8px;
+		}
+
+		.detalle-dia {
+			border: 1px solid var(--line-1);
+			border-radius: 10px;
+			padding: 10px;
+			margin-bottom: 8px;
+			background: #fbfeff;
+		}
+
+		.detalle-dia-fecha {
+			font-weight: 700;
+			margin-bottom: 6px;
+		}
+
+		.detalle-horarios {
+			display: flex;
+			gap: 6px;
+			flex-wrap: wrap;
+		}
+
+		.detalle-horario-chip {
+			background: #e7f4fc;
+			border: 1px solid #b8dbef;
+			border-radius: 999px;
+			padding: 4px 9px;
+			font-size: 0.85rem;
+		}
+
+		button.detalle-horario-chip {
+			cursor: pointer;
+			background: var(--btn-todos-bg);
+			color: var(--btn-todos-text);
+			border-color: var(--btn-todos-border);
+			transition: all 0.15s ease;
+		}
+
+		button.detalle-horario-chip:hover {
+			background: var(--btn-todos-bg);
+			border-color: var(--btn-todos-border);
+		}
+
+		button.detalle-horario-chip.seleccionado {
+			background: var(--btn-todos-bg);
+			color: var(--btn-todos-text);
+			border-color: var(--btn-todos-border);
+		}
+
+		.modal h3 {
+			margin: 0 0 8px;
+			font-family: 'Comic Sans MS', cursive;
+		}
+
+		.btn-cerrar-modal {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			width: 20px;
+			height: 20px;
+			padding: 0;
+			border: none;
+			background: var(--btn-todos-bg);
+			color: #ffffff;
+			font-size: 10px;
+			font-weight: 700;
+			line-height: 1;
+			cursor: pointer;
+		}
+
+		.btn-cerrar-modal:hover {
+			color: #ffffff;
+			background: var(--btn-todos-bg);
+		}
+
+		.btn-cerrar-detalle {
+			top: 10px;
+			right: 10px;
+			left: auto;
+			width: 30px;
+			height: 30px;
+			font-size: 20px;
+			color: #ffffff;
+			background: var(--btn-todos-bg);
+			border-radius: 50%;
+			line-height: 1;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.btn-cerrar-detalle:hover {
+			color: #ffffff;
+			background: var(--btn-todos-bg);
+		}
+
+		.modal p {
+			margin: 7px 0;
+		}
+
+		.modal-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 14px;
+		}
+
+		.btn-guardar-pos {
+			margin-right: auto;
+		}
+
+		.btn-cancelar-pos {
+			margin-left: auto;
+		}
+
+		.btn-modal {
+			border-radius: 8px;
+			padding: 10px 14px;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.btn-cancelar {
+			background: var(--btn-todos-bg);
+			border: 1px solid var(--btn-todos-border);
+			color: var(--btn-todos-text);
+		}
+
+		.btn-confirmar {
+			background: var(--btn-todos-bg);
+			border: 1px solid var(--btn-todos-border);
+			color: var(--btn-todos-text);
+		}
+
+		.btn-guardar {
+			background: var(--btn-todos-bg);
+			border: 1px solid var(--btn-todos-border);
+			color: var(--btn-todos-text);
+		}
+
+		.reservas-lista {
+			display: grid;
+			gap: 10px;
+			margin-top: 10px;
+			max-height: 320px;
+			overflow-y: auto;
+		}
+
+		.portada-contenedor {
+			margin: 0 auto;
+			position: relative;
+			border-radius: 8px;
+			overflow: hidden;
+			width: 240px;
+			height: 348px;
+			border: 1px solid var(--line-1);
+		}
+
+		.pelicula-portada {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			object-position: center;
+			display: block;
+			border-radius: 0;
+		}
+
+		.pelicula-portada-placeholder {
+			width: 100%;
+			height: 100%;
+			border-radius: 0;
+			background: #f3fbff;
+		}
+
+		/* Bordes por tipo de espectaculo en cartelera */
+		.pelicula-card.tipo-show .portada-contenedor {
+			border: 4px solid #d4af37;
+		}
+
+		.pelicula-card.tipo-teatro .portada-contenedor {
+			border: 4px solid #ff8c00;
+		}
+
+		.pelicula-card.tipo-exposicion .portada-contenedor {
+			border: 4px solid #8b00ff;
+		}
+
+		.pelicula-card.tipo-pelicula .portada-contenedor {
+			border: 4px solid #001a4d;
+		}
+
+		.pelicula-card h3 {
+			margin: 0;
+			font-size: 1.14rem;
+			line-height: 1.25;
+			min-height: 2.6em;
+			max-height: 2.6em;
+			overflow: hidden;
+		}
+
+		.pelicula-etiqueta-cognitiva {
+			margin: 0;
+			padding: 8px 10px;
+			border-radius: 10px;
+			background: #e9f6ff;
+			border: 1px solid #8ec7e7;
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: #0f2d43;
+			text-align: center;
+		}
+
+		.pelicula-calificacion {
+			margin: 0;
+			font-size: 0.93rem;
+			font-weight: 700;
+			color: var(--accent-2);
+		}
+
+		.pelicula-info {
+			display: grid;
+			gap: 6px;
+			font-size: 0.93rem;
+		}
+
+		.pelicula-info p {
+			margin: 0;
+			line-height: 1.35;
+			min-height: 1.35em;
+			max-height: 1.35em;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		.bloques-funciones {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 16px;
+		}
+
+		.bloque-funcion h3 {
+			margin: 0 0 10px;
+			font-size: 1.2rem;
+			font-family: 'Comic Sans MS', cursive;
+			letter-spacing: 0.02em;
+		}
+
+		.bloque-funcion {
+			background: #fafdff;
+			border: 1px solid var(--line-1);
+			border-radius: 12px;
+			padding: 18px;
+			box-shadow: 0 8px 20px rgba(33, 79, 111, 0.1);
+		}
+
+		@media (max-width: 760px) {
+			.acceso-cliente-wrapper {
+				justify-self: end;
+			}
+
+			.usuario-barra-izquierda {
+				max-width: none;
+			}
+
+			.acceso-admin-discreto {
+				width: 40px;
+				height: 40px;
+			}
+
+			.cliente-nombre {
+				font-size: 13px;
+				max-width: 118px;
+			}
+
+			.header-title {
+				font-size: 18px;
+				max-width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.topbar-inner {
+				padding: 6px 10px;
+				grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+				min-height: 48px;
+			}
+
+			.contenedor {
+				padding: 18px 12px 36px;
+			}
+
+			.seccion {
+				padding: 14px;
+			}
+
+			.seccion h2 {
+				font-size: 1.2rem;
+			}
+
+			.peliculas-grid {
+				grid-template-columns: 1fr;
+				gap: 16px;
+			}
+
+			.pelicula-card {
+				padding: 14px 14px 16px;
+			}
+
+			.portada-contenedor {
+				width: 100%;
+				height: 360px;
+			}
+
+			.portada-contenedor,
+				width: min(220px, 100%);
+				height: auto;
+				aspect-ratio: 11 / 16;
+			}
+
+			.pelicula-portada,
+			.pelicula-portada-placeholder {
+				width: 100%;
+				height: 100%;
+			}
+
+			.pelicula-info p {
+				white-space: normal;
+				max-height: none;
+			}
+
+			.bloques-funciones {
+				grid-template-columns: 1fr;
+			}
+
+			.detalle-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.detalle-portada,
+			.detalle-portada-placeholder {
+				width: min(250px, 100%);
+				height: auto;
+				aspect-ratio: 11 / 16;
+				margin: 0 auto;
+			}
+
+			.bloque-funcion {
+				padding: 16px;
+			}
+
+			.chip {
+				min-width: 0;
+				width: 100%;
+			}
+
+			.filtro-tipo-wrapper {
+				display: grid;
+				justify-items: start;
+				gap: 6px;
+				margin-bottom: 12px;
+			}
+
+			.filtro-tipo-select {
+				padding: 6px 12px;
+				font-size: 0.86rem;
+			}
+		}
+
+		@media (max-width: 420px) {
+			.acceso-cliente-wrapper {
+				gap: 6px;
+			}
+
+			.topbar-inner {
+				padding: 8px;
+				min-height: 56px;
+			}
+
+			.usuario-barra-izquierda {
+				max-width: none;
+			}
+
+			.acceso-cliente-boton {
+				height: 34px;
+				padding: 0 10px;
+				font-size: 11px;
+			}
+
+			.cliente-nombre {
+				max-width: 108px;
+				font-size: 12px;
+			}
+
+			.header-title {
+				font-size: 16px;
+			}
+
+			.scroll-link {
+				width: 100%;
+				text-align: center;
+			}
+
+			.modal-actions {
+				flex-direction: column;
+			}
+
+			.btn-modal {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 560px) {
+			.topbar-inner {
+				grid-template-columns: minmax(0, 1fr) auto;
+				grid-template-areas:
+					"title user"
+					"name name";
+				gap: 6px 10px;
+			}
+
+			.header-title {
+				grid-area: title;
+				justify-self: start;
+				text-align: left;
+				font-size: 15px;
+			}
+
+			.acceso-cliente-wrapper {
+				grid-area: user;
+			}
+
+			.usuario-barra-izquierda {
+				grid-area: name;
+				max-width: 100%;
+			}
+
+			.cliente-nombre {
+				max-width: 100%;
+			}
+		}
+
+		@media (max-height: 700px) {
+			.modal {
+				max-height: 90vh;
+				overflow: auto;
+			}
+
+			.modal-detalle {
+				max-height: 90vh;
+			}
+		}
+	</style>
+</head>
+<body>
+	<header class="topbar">
+		<div class="topbar-inner">
+			<div class="usuario-barra-izquierda">
+				<div class="filtro-tipo-wrapper" aria-label="Filtrar por tipo de espectaculo">
+					<label class="filtro-tipo-label" for="filtroTipoSelect">Espectaculo:</label>
+					<select id="filtroTipoSelect" class="filtro-tipo-select tipo-todos" aria-label="Filtrar cartelera por tipo de espectaculo">
+						<option value="todos" selected>Todos</option>
+						<option value="pelicula">Pelicula</option>
+						<option value="show">Show</option>
+						<option value="teatro">Teatro</option>
+						<option value="exposicion">Exposicion</option>
+					</select>
+				</div>
+			</div>
+			<div class="header-title">Cartelera</div>
+			<div class="acceso-cliente-wrapper">
+				<a class="acceso-admin-discreto" href="{% url 'ingresar_admin' %}" aria-label="Ingreso de Usuario" title="Ingreso de Usuario">
+					<span class="usuario-icono" aria-hidden="true">
+						<span class="usuario-icono-cabeza"></span>
+						<span class="usuario-icono-cuerpo"></span>
+					</span>
+				</a>
+			</div>
+		</div>
+	</header>
+
+	<main class="contenedor" id="inicio">
+
+		<section class="seccion" id="peliculas">
+			<h2>Cartelera</h2>
+			<div class="peliculas-wrapper">
+				<div class="peliculas-grid">
+					{% for pelicula in peliculas %}
+					<article
+						class="pelicula-card{% if pelicula.tipo_espectaculo == 'show' %} tipo-show{% elif pelicula.tipo_espectaculo == 'teatro' %} tipo-teatro{% elif pelicula.tipo_espectaculo == 'exposicion' or pelicula.tipo_espectaculo == 'exposición' %} tipo-exposicion{% else %} tipo-pelicula{% endif %}"
+						data-tipo="{% if pelicula.tipo_espectaculo == 'show' %}show{% elif pelicula.tipo_espectaculo == 'teatro' %}teatro{% elif pelicula.tipo_espectaculo == 'exposicion' or pelicula.tipo_espectaculo == 'exposición' %}exposicion{% else %}pelicula{% endif %}"
+						data-detalle-url="{% url 'detalle_espectaculo' pelicula.id %}"
+						data-pelicula="{{ pelicula.nombre|escape }}"
+						data-apto-discapacidad-cognitiva="{% if pelicula.apto_discapacidad_cognitiva %}1{% else %}0{% endif %}"
+						data-generos="{{ pelicula.generos|escape }}"
+						data-clasificacion="{{ pelicula.clasificacion|escape }}"
+						data-duracion="{{ pelicula.duracion|escape }}"
+						data-calificacion="{{ pelicula.calificacion|escape }}"
+						data-fecha-estreno="{{ pelicula.fecha_estreno|escape }}"
+						data-fecha-hasta="{{ pelicula.fecha_hasta|escape }}"
+						data-programacion-id="programacion-pelicula-{{ forloop.counter0 }}"
+					>
+						<div class="portada-contenedor">
+						{% if pelicula.portada_src %}
+						<img class="pelicula-portada" src="{{ pelicula.portada_src }}" alt="Portada de {{ pelicula.nombre }}">
+						{% else %}
+						<div class="pelicula-portada-placeholder"></div>
+						{% endif %}
+						</div>
+						<h3>{{ pelicula.nombre }}</h3>
+						{% if pelicula.apto_discapacidad_cognitiva %}
+						<p class="pelicula-etiqueta-cognitiva">{{ texto_apto_discapacidad_cognitiva }}</p>
+						{% endif %}
+					</article>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+	</main>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const filtroTipoSelect = document.getElementById('filtroTipoSelect');
+			const tarjetas = Array.from(document.querySelectorAll('.peliculas-grid .pelicula-card'));
+
+			if (!filtroTipoSelect || !tarjetas.length) {
+				return;
+			}
+
+			tarjetas.forEach(function (tarjeta) {
+				tarjeta.addEventListener('click', function () {
+					const detalleUrl = tarjeta.dataset.detalleUrl;
+					if (detalleUrl) {
+						window.location.href = detalleUrl;
+					}
+				});
+			});
+
+			function aplicarFiltro(tipoSeleccionado) {
+				tarjetas.forEach(function (tarjeta) {
+					const tipoTarjeta = (tarjeta.dataset.tipo || 'pelicula').toLowerCase();
+					const mostrar = tipoSeleccionado === 'todos' || tipoTarjeta === tipoSeleccionado;
+					tarjeta.style.display = mostrar ? '' : 'none';
+				});
+
+				filtroTipoSelect.className = 'filtro-tipo-select tipo-' + tipoSeleccionado;
+			}
+
+			filtroTipoSelect.addEventListener('change', function () {
+				aplicarFiltro((filtroTipoSelect.value || 'todos').toLowerCase());
+			});
+
+			filtroTipoSelect.value = 'todos';
+			aplicarFiltro('todos');
+		});
+	</script>
+</body>
+</html>
