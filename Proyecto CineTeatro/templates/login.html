@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            display: flex;
+            max-width: 800px;
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgb(3, 9, 46);
+            overflow: hidden;
+        }
+        .message {
+            flex: 1;
+            padding: 40px;
+            background-color: rgb(3, 9, 46);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .message p {
+            font-size: 18px;
+            color: #ffffff;
+            line-height: 1.5;
+        }
+        .form-container {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: rgb(3, 9, 46);
+        }
+        .panel-subtitle {
+            text-align: center;
+            color: #4f6077;
+            margin-top: -8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .error {
+            margin-bottom: 12px;
+            color: #b31212;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success {
+            margin-bottom: 12px;
+            color: #0f6a2c;
+            font-weight: bold;
+            text-align: center;
+        }
+        .tabs {
+            display: none;
+        }
+        .tab-button {
+            padding: 9px;
+            border: 1px solid #b8c7db;
+            border-radius: 6px;
+            background: #ffffff;
+            color: rgb(3, 9, 46);
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background: rgb(3, 9, 46);
+            color: #ffffff;
+            border-color: rgb(3, 9, 46);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .login-role-tabs {
+            display: none;
+        }
+        .role-button {
+            padding: 8px;
+            border: 1px solid #b8c7db;
+            border-radius: 6px;
+            background: #ffffff;
+            color: rgb(3, 9, 46);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .role-button.active {
+            background: rgb(3, 9, 46);
+            color: #ffffff;
+            border-color: rgb(3, 9, 46);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: rgb(3, 9, 46);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d0d7e2;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 760px) {
+            .container {
+                flex-direction: column;
+                max-width: 520px;
+            }
+
+            .message,
+            .form-container {
+                padding: 24px;
+            }
+
+            .message p {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .message,
+            .form-container {
+                padding: 18px;
+            }
+
+            .form-container h2 {
+                font-size: 20px;
+            }
+
+            .tabs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-height: 700px) {
+            body {
+                align-items: flex-start;
+                padding: 10px;
+            }
+
+            .container {
+                margin: 8px 0;
+            }
+
+            .message,
+            .form-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message">
+            <p id="mensaje-lateral">El ingreso está reservado exclusivamente para Administradores autorizados.</p>
+        </div>
+        <div class="form-container">
+            <h2>Acceso al sistema</h2>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            {% if registro_error %}
+            <div class="error">{{ registro_error }}</div>
+            {% endif %}
+            {% if registro_ok %}
+            <div class="success">{{ registro_ok }}</div>
+            {% endif %}
+
+            <div id="tab-login" class="tab-content active">
+                <form action="{% url 'validar_admin' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="tipo_login" name="tipo_login" value="admin">
+                    <div class="form-group">
+                        <label for="usuario" id="usuario-label">Usuario o Gmail de Admin:</label>
+                        <input type="text" id="usuario" name="usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contraseña" id="contrasena-label">Contraseña de Admin:</label>
+                        <input type="password" id="contraseña" name="contraseña" required>
+                    </div>
+                    <button type="submit">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    </script>
+</body>
+</html>
